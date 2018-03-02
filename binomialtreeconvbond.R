@@ -41,7 +41,7 @@ r_b <- risk_free - div_yield
 # implementation of credit risk - with probability of default 
 # at default, it is assumed that the value of the stock drops to 0
 
-lambda <- 0.02
+lambda <- 0.01
 prob_default <- 1 - exp(-lambda * dt)
 recovery_rate <- 0.50
 
@@ -99,8 +99,22 @@ for (tree_time in (n_steps-1):1) {
 
 binomial_tree_payoff[1, 1] #conv bond value at time 0
 
+# is the continuation value > conversion value??? -- matrix
 
+conversion_test <- binomial_tree_payoff
 
+for (tree_time in (n_steps):1) {
+  for (nodes_at_time in 1:tree_time) {
+    conversion_test[tree_time, nodes_at_time] <- 
+      if (continuation_tree[tree_time, nodes_at_time] > 
+          binomial_tree_stock[tree_time, nodes_at_time] * conv_ratio) 
+        1
+      else
+        0
+  }
+}
+
+sum(rowSums(conversion_test, na.rm = TRUE))
 
 
 
