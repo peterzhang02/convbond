@@ -4,20 +4,20 @@ rm(list = ls(all.names = TRUE))
 # Binomial Tree Test--------------------------
 
 # Timer
-ptm <- proc.time()
+#ptm <- proc.time()
 
 # Variables
 stock_0 <- 100
 
 bond_fv <- 100000
-bond_cp <- 125
-conv_ratio <- bond_fv / bond_cp
+bond_conprice <- 125
+conv_ratio <- bond_fv / bond_conprice
 
 coupon_rate <- 0.05
-yrly_coupons <- 2
+yrly_coupons <- 4
 coupon_value <- bond_fv * coupon_rate / yrly_coupons
 
-time_maturity <- 1 # specification in years
+time_maturity <- 2 # specification in years
 n_steps <- 100 # number of steps in tree
 
 # the following code identifies the nodes where coupon payments would occur
@@ -26,6 +26,9 @@ coupon_times <- seq(0, n_steps, n_steps / total_coupons)
 coupon_times <- round(coupon_times)
 coupon_times <- coupon_times[1:total_coupons] # to remove the first and last coupons
 
+coupon_values <- rep(0, n_steps)
+coupon_values[coupon_times] <- coupon_value
+
 volatility <- 0.25
 dt <- time_maturity / n_steps
 u <- exp(volatility * sqrt(dt))
@@ -33,16 +36,18 @@ d <- 1 / u
 
 risk_free <- 0.05
 div_yield <- 0.05
-risk_free_df <- exp(-risk_free * dt)
 r_b <- risk_free - div_yield
 
 # implementation of credit risk - with probability of default 
+# at default, it is assumed that the value of the stock drops to 0
 
 lambda <- 0.02
 prob_default <- 1 - exp(-lambda * dt)
+recovery_rate <- 0.50
 
 r_blambda_dt <- exp((r_b + lambda) * dt)
 q = (r_blambda_dt - d) / (u - d)
+rf_discountfactor <- exp(-risk_free * dt)
 
 # creation of binomial trees --------------------------------------------------
 
@@ -63,22 +68,34 @@ for (tree_time in 2:n_steps) {
 # set convertible note value at final node
 
 binomial_tree_payoff <- binomial_tree_stock
-binomial_tree_payoff[n_steps, ] <- pmax(facevalue + coupon_value, 
+binomial_tree_payoff[n_steps, ] <- pmax(bond_fv + coupon_value, 
                                         binomial_tree_stock[n_steps, ] * conv_ratio)
 
-option_values <- binomial_tree_payoff # to initialise option values data frame 
+continuation_tree <- binomial_tree_payoff # to initialise continuation values data frame 
 
 for (tree_time in (n_steps-1):1) {
   for (nodes_at_time in 1:tree_time) {
-    option_values[tree_time, nodes_at_time] <- (q * option_values[tree_time + 1,
-                                                                  nodes_at_time + 1] +
-                                                  (1 - q) * option_values[tree_time + 1,
-                                                                          nodes_at_time]) *
-      risk_free_df
+    continuation_tree[tree_time, nodes_at_time] <- 
+      rf_discountfactor * (1 - prob_default) * 
+      (q * continuation_tree[tree_time + 1, nodes_at_time + 1] + 
+      (1 - q) * continuation_tree[tree_time + 1, nodes_at_time])
+    +
+      (1 - prob_default) * coupon_values[tree_time]
+    +
+      prob_default * rf_discountfactor * 
+      recovery_rate * bond_fv * exp(-risk_free * (n_steps - tree_time))
   }
 }
 
-option_values[1, 1] #option value at time 0
+for (tree_time in (n_steps-1):1) {
+  for (nodes_at_time in 1:tree_time) {
+    binomial_tree_payoff[tree_time, nodes_at_time] <- 
+      pmax(continuation_tree[tree_time, nodes_at_time], 
+           binomial_tree_stock[tree_time, nodes_at_time] * conv_ratio)
+  }
+}
+
+binomial_tree_payoff[1, 1] #conv bond value at time 0
 
 # Black Scholes
 
