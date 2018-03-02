@@ -1,5 +1,4 @@
-setwd(readClipboard())
-
+#setwd(readClipboard())
 
 rm(list = ls(all.names = TRUE))
 # Binomial Tree Test--------------------------
@@ -9,6 +8,10 @@ ptm <- proc.time()
 
 # Variables
 stock_0 <- 100
+
+bond_fv <- 100000
+bond_cp <- 125
+conv_ratio <- bond_fv / bond_cp
 
 time_maturity <- 1 # specification in years
 n_steps <- 100 # number of steps in tree
