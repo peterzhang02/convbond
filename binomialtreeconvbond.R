@@ -19,6 +19,14 @@ coupon_value <- bond_fv * coupon_rate / yrly_coupons
 
 time_maturity <- 1 # specification in years
 n_steps <- 100 # number of steps in tree
+
+# the following code identifies the nodes where coupon payments would occur
+
+total_coupons <- yrly_coupons * time_maturity
+coupon_times <- seq(0, n_steps, n_steps / total_coupons)
+coupon_times <- round(coupon_times)
+coupon_times <- coupon_times[1:total_coupons + 1] # to remove the coupon at t = 0
+
 volatility <- 0.25
 dt <- time_maturity / n_steps
 u <- exp(volatility * sqrt(dt))
