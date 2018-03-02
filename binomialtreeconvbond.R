@@ -13,6 +13,10 @@ bond_fv <- 100000
 bond_cp <- 125
 conv_ratio <- bond_fv / bond_cp
 
+coupon_rate <- 0.05
+yrly_coupons <- 2
+coupon_value <- bond_fv * coupon_rate / yrly_coupons
+
 time_maturity <- 1 # specification in years
 n_steps <- 100 # number of steps in tree
 volatility <- 0.25
