@@ -24,7 +24,7 @@ n_steps <- 100 # number of steps in tree
 total_coupons <- yrly_coupons * time_maturity
 coupon_times <- seq(0, n_steps, n_steps / total_coupons)
 coupon_times <- round(coupon_times)
-coupon_times <- coupon_times[1:total_coupons + 1] # to remove the coupon at t = 0
+coupon_times <- coupon_times[1:total_coupons] # to remove the first and last coupons
 
 volatility <- 0.25
 dt <- time_maturity / n_steps
@@ -44,7 +44,7 @@ prob_default <- 1 - exp(-lambda * dt)
 r_blambda_dt <- exp((r_b + lambda) * dt)
 q = (r_blambda_dt - d) / (u - d)
 
-strike <- 100
+# creation of binomial trees --------------------------------------------------
 
 binomial_tree_stock  <- data.frame() # initialise data frame for binomial tree
 binomial_tree_stock[1, 1] <- stock_0 # set initial value for binomial tree
@@ -60,11 +60,11 @@ for (tree_time in 2:n_steps) {
   }
 }
 
-# set option price at end of tree (equal to payoff function)
+# set convertible note value at final node
 
 binomial_tree_payoff <- binomial_tree_stock
-binomial_tree_payoff[n_steps, ] <- binomial_tree_stock[n_steps, ] - strike
-binomial_tree_payoff[binomial_tree_payoff < 0] <- 0
+binomial_tree_payoff[n_steps, ] <- pmax(facevalue + coupon_value, 
+                                        binomial_tree_stock[n_steps, ] * conv_ratio)
 
 option_values <- binomial_tree_payoff # to initialise option values data frame 
 
