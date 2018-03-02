@@ -114,40 +114,11 @@ for (tree_time in (n_steps):1) {
   }
 }
 
-sum(rowSums(conversion_test, na.rm = TRUE))
+# percentage of nodes where continuation value > conversion value
+sum(rowSums(conversion_test, na.rm = TRUE)) / sum(seq(1, n_steps))
 
 
 
 
 
 
-
-
-
-
-# Black Scholes
-
-denom <- volatility * sqrt(time_maturity)
-
-d1 <- (log(stock_0 / strike) + (risk_free - div_yield + (volatility * volatility) / 2) * 
-         time_maturity) / denom
-
-d2 <- (log(stock_0 / strike) + (risk_free - div_yield - (volatility * volatility) / 2) * 
-         time_maturity) / denom
-
-euro_call <- exp(-div_yield * time_maturity) * stock_0 * pnorm(d1) -
-  exp(-risk_free * time_maturity) * strike * pnorm(d2)
-
-euro_call
-option_values[1, 1] - euro_call
-
-# Stop time
-proc.time() - ptm
-
-
-
-
-
-u*q + d*(1-q) - exp((r_b)*dt)
-
-q*(u^2) + (1-q)*(d^2) - exp(2*risk_free*dt)+(volatility^2)*dt
