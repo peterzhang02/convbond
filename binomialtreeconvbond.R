@@ -87,6 +87,8 @@ for (tree_time in (n_steps-1):1) {
   }
 }
 
+# use continuation_tree to calculate conv bond values at different times
+
 for (tree_time in (n_steps-1):1) {
   for (nodes_at_time in 1:tree_time) {
     binomial_tree_payoff[tree_time, nodes_at_time] <- 
@@ -96,6 +98,18 @@ for (tree_time in (n_steps-1):1) {
 }
 
 binomial_tree_payoff[1, 1] #conv bond value at time 0
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Black Scholes
 
