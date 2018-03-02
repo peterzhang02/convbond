@@ -21,7 +21,6 @@ time_maturity <- 1 # specification in years
 n_steps <- 100 # number of steps in tree
 
 # the following code identifies the nodes where coupon payments would occur
-
 total_coupons <- yrly_coupons * time_maturity
 coupon_times <- seq(0, n_steps, n_steps / total_coupons)
 coupon_times <- round(coupon_times)
@@ -37,8 +36,13 @@ div_yield <- 0.05
 risk_free_df <- exp(-risk_free * dt)
 r_b <- risk_free - div_yield
 
-r_b_dt <- exp(r_b * dt)
-q = (r_b_dt - d) / (u - d)
+# implementation of credit risk - with probability of default 
+
+lambda <- 0.02
+prob_default <- 1 - exp(-lambda * dt)
+
+r_blambda_dt <- exp((r_b + lambda) * dt)
+q = (r_blambda_dt - d) / (u - d)
 
 strike <- 100
 
