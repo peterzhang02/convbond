@@ -114,9 +114,14 @@ for (tree_time in (n_steps):1) {
   }
 }
 
+# checks and useful matrices --------------------------------------------------
+
 # percentage of nodes where continuation value > conversion value
 sum(rowSums(conversion_test, na.rm = TRUE)) / sum(seq(1, n_steps))
 
+# difference between continuation value and conversion value
+conversion_tree <- conv_ratio * binomial_tree_stock
+difference_test <- continuation_tree - conversion_tree
 
 
 
