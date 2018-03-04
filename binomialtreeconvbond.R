@@ -41,8 +41,10 @@ r_b <- risk_free - div_yield
 # implementation of credit risk - with probability of default 
 # at default, it is assumed that the value of the stock drops to 0
 
-lambda <- 0.01
-prob_default <- 1 - exp(-lambda * dt)
+prob_default <- 0.50 #probability of default over the life of the conv bond
+lambda <- -log(1 - prob_default) / time_maturity
+prob_default_node <- 1 - exp(-lambda * dt)
+
 recovery_rate <- 0.50
 
 r_blambda_dt <- exp((r_b + lambda) * dt)
@@ -123,7 +125,6 @@ sum(rowSums(conversion_test, na.rm = TRUE)) / sum(seq(1, n_steps))
 conversion_tree <- conv_ratio * binomial_tree_stock
 difference_test <- continuation_tree - conversion_tree
 
-aaa
 
 
 
