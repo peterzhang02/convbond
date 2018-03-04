@@ -24,10 +24,10 @@ n_steps <- 100 # number of steps in tree
 total_coupons <- yrly_coupons * time_maturity
 coupon_times <- seq(0, n_steps, n_steps / total_coupons)
 coupon_times <- round(coupon_times)
-coupon_times <- coupon_times[1:total_coupons] # to remove the first and last coupons
+coupon_times <- coupon_times[1:total_coupons] # to remove the last coupon
 
 coupon_values <- rep(0, n_steps)
-coupon_values[coupon_times] <- coupon_value
+coupon_values[coupon_times] <- coupon_value #gives the time vector of coupon payments
 
 volatility <- 0.25
 dt <- time_maturity / n_steps
@@ -54,26 +54,26 @@ rf_discountfactor <- exp(-risk_free * dt)
 binomial_tree_stock  <- data.frame() # initialise data frame for binomial tree
 binomial_tree_stock[1, 1] <- stock_0 # set initial value for binomial tree
 
-# the following binomial tree grows downwards (rows represent time) and to the right (representing
-# up movements)
+# the following binomial tree grows downwards (rows represent time) 
+# and to the right (representing up movements)
 
 for (tree_time in 2:n_steps) {
   binomial_tree_stock[tree_time, 1] <- binomial_tree_stock[tree_time -1, 1] * d
   for (nodes_at_time in 2:tree_time) {
     binomial_tree_stock[tree_time, nodes_at_time] <- binomial_tree_stock[tree_time - 1,
-                                                                         nodes_at_time -1] * u
+                                                                         nodes_at_time - 1] * u
   }
 }
 
 # set convertible note value at final node
-
+# assumed final node includes the final coupon payment + fv
 binomial_tree_payoff <- binomial_tree_stock
 binomial_tree_payoff[n_steps, ] <- pmax(bond_fv + coupon_value, 
                                         binomial_tree_stock[n_steps, ] * conv_ratio)
 
 continuation_tree <- binomial_tree_payoff # to initialise continuation values data frame 
 
-for (tree_time in (n_steps-1):1) {
+for (tree_time in (n_steps - 1):1) {
   for (nodes_at_time in 1:tree_time) {
     continuation_tree[tree_time, nodes_at_time] <- 
       rf_discountfactor * (1 - prob_default) * 
@@ -89,7 +89,7 @@ for (tree_time in (n_steps-1):1) {
 
 # use continuation_tree to calculate conv bond values at different times
 
-for (tree_time in (n_steps-1):1) {
+for (tree_time in (n_steps - 1):1) {
   for (nodes_at_time in 1:tree_time) {
     binomial_tree_payoff[tree_time, nodes_at_time] <- 
       pmax(continuation_tree[tree_time, nodes_at_time], 
