@@ -123,7 +123,7 @@ sum(rowSums(conversion_test, na.rm = TRUE)) / sum(seq(1, n_steps))
 conversion_tree <- conv_ratio * binomial_tree_stock
 difference_test <- continuation_tree - conversion_tree
 
-
+aaa
 
 
 
