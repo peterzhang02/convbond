@@ -86,15 +86,9 @@ for (tree_time in (n_steps - 1):1) {
     +
       prob_default * rf_discountfactor * 
       recovery_rate * bond_fv * exp(-risk_free * (n_steps - tree_time))
-  }
-}
-
-# use continuation_tree to calculate conv bond values at different times
-
-for (tree_time in (n_steps - 1):1) {
-  for (nodes_at_time in 1:tree_time) {
-    binomial_tree_payoff[tree_time, nodes_at_time] <- 
-      pmax(continuation_tree[tree_time, nodes_at_time], 
+    
+    binomial_tree_payoff[tree_time, nodes_at_time] <-
+      pmax(continuation_tree[tree_time, nodes_at_time],
            binomial_tree_stock[tree_time, nodes_at_time] * conv_ratio)
   }
 }
