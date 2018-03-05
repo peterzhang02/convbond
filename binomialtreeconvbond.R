@@ -78,13 +78,13 @@ continuation_tree <- binomial_tree_payoff # to initialise continuation values da
 for (tree_time in (n_steps - 1):1) {
   for (nodes_at_time in 1:tree_time) {
     continuation_tree[tree_time, nodes_at_time] <- 
-      rf_discountfactor * (1 - prob_default) * 
-      (q * continuation_tree[tree_time + 1, nodes_at_time + 1] + 
-      (1 - q) * continuation_tree[tree_time + 1, nodes_at_time])
+      rf_discountfactor * (1 - prob_default_node) * 
+      (q * binomial_tree_payoff[tree_time + 1, nodes_at_time + 1] + 
+      (1 - q) * binomial_tree_payoff[tree_time + 1, nodes_at_time])
     +
-      (1 - prob_default) * coupon_values[tree_time]
+      (1 - prob_default_node) * coupon_values[tree_time]
     +
-      prob_default * rf_discountfactor * 
+      prob_default_node * rf_discountfactor * 
       recovery_rate * bond_fv * exp(-risk_free * (n_steps - tree_time))
     
     binomial_tree_payoff[tree_time, nodes_at_time] <-
