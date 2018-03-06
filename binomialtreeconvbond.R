@@ -4,7 +4,7 @@ rm(list = ls(all.names = TRUE))
 # Binomial Tree Test--------------------------
 
 # Timer
-#ptm <- proc.time()
+ptm <- proc.time()
 
 # Variables
 stock_0 <- 100
@@ -94,6 +94,9 @@ for (tree_time in (n_steps - 1):1) {
 }
 
 binomial_tree_payoff[1, 1] #conv bond value at time 0
+
+# Stop timer
+proc.time() - ptm
 
 # is the continuation value > conversion value??? -- matrix
 
