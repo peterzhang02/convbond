@@ -43,12 +43,14 @@ r_b <- risk_free - div_yield
 
 prob_default <- 0.507 #probability of default over the life of the conv bond
 lambda <- -log(1 - prob_default) / time_maturity
-prob_default_node <- 1 - exp(-lambda * dt)
+# prob_default_node <- 1 - exp(-lambda * dt) FROM CONSTANT INTENSITY MODEL
+alpha <- -0.50
 
 recovery_rate <- 0.00
 
-r_blambda_dt <- exp((r_b + lambda) * dt)
-q = (r_blambda_dt - d) / (u - d)
+# r_blambda_dt <- exp((r_b + lambda) * dt) FROM CONSTANT INTENSITY MODEL
+# q = (r_blambda_dt - d) / (u - d) FROM CONSTANT INTENSITY MODEL
+
 rf_discountfactor <- exp(-risk_free * dt)
 
 # creation of binomial trees --------------------------------------------------
@@ -66,6 +68,15 @@ for (tree_time in 2:n_steps) {
                                                                          nodes_at_time - 1] * u
   }
 }
+
+# creates matrix of default intensities based on stock price
+intensity_tree <- lambda * (binomial_tree_stock / stock_0) ^ alpha
+
+# creates matrix of probability defaults (at each node) based on matrix of default
+# intensities
+
+
+
 # creates adjusted stock price binomial tree with 0.83 VWAP factor
 a_binomial_tree_stock <- binomial_tree_stock * 0.83
 a_binomial_tree_stock[a_binomial_tree_stock > bond_conprice] <- bond_conprice
