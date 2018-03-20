@@ -42,11 +42,19 @@ r_b <- risk_free - div_yield
 # at default, it is assumed that the value of the stock drops to 0
 
 prob_default <- 0.507 #probability of default over the life of the conv bond
-lambda <- -log(1 - prob_default) / time_maturity
+lambda_0 <- -log(1 - prob_default) / time_maturity
 # prob_default_node <- 1 - exp(-lambda * dt) FROM CONSTANT INTENSITY MODEL
 alpha <- -0.50
 
 recovery_rate <- 0.00
+
+# when stock prices fall below this lower bound, the probabilities of
+# default, up and down movements will not belong to [0, 1]
+lower_bound <- stock_0 * 
+  (
+    (1 / (lambda_0 * dt)) * 
+     log((u - recovery_rate) / (exp(risk_free * dt) - recovery_rate))
+  ) ^ (1 / alpha)
 
 # r_blambda_dt <- exp((r_b + lambda) * dt) FROM CONSTANT INTENSITY MODEL
 # q = (r_blambda_dt - d) / (u - d) FROM CONSTANT INTENSITY MODEL
@@ -69,13 +77,28 @@ for (tree_time in 2:n_steps) {
   }
 }
 
-# creates matrix of default intensities based on stock price
-intensity_tree <- lambda * (binomial_tree_stock / stock_0) ^ alpha
+lower_bound_tree <- binomial_tree_stock < lower_bound
+test <- colSums(lower_bound_tree, na.rm = TRUE)
+test <- test[test > 0]
+length(test) / n_steps
 
-# creates matrix of probability defaults (at each node) based on matrix of default
+sum(rowSums(lower_bound_tree, na.rm = TRUE)) / sum(seq(1, n_steps))
+# looks like with 100 steps, 19% of all stock prices fall below the lower bound.
+# 500 steps, 31% of all stock prices fall below the lower bound.
+
+# creates matrix of default intensities (lambdas) based on stock price
+intensity_tree <- lambda_0 * (binomial_tree_stock / stock_0) ^ alpha
+
+# creates matrix of probability of default (at each node) based on matrix of default
 # intensities
+default_tree <- 1 - exp(-intensity_tree * dt)
 
+# creates matrix of probability of up movements (q)
+probability_tree <- (exp((r_b + intensity_tree) * dt) - d) / (u - d)
 
+# overrides values in the probability of default tree where the stock price is
+# below the lower bound. (sets prob of default to 1)
+default_tree[binomial_tree_stock < lower_bound] <- 1
 
 # creates adjusted stock price binomial tree with 0.83 VWAP factor
 a_binomial_tree_stock <- binomial_tree_stock * 0.83
