@@ -93,8 +93,13 @@ intensity_tree <- lambda_0 * (binomial_tree_stock / stock_0) ^ alpha
 # intensities
 default_tree <- 1 - exp(-intensity_tree * dt)
 
-# creates matrix of probability of up movements (q)
+# creates matrix of probability of up movements (q) and renames it for brevity
 probability_tree <- (exp((r_b + intensity_tree) * dt) - d) / (u - d)
+q <- probability_tree
+q[binomial_tree_stock < lower_bound] <- 0
+# overrides values in the stock price tree where the stock price is below the lower
+# bound. (sets values to 0)
+# [binomial_tree_stock < lower_bound] <- 0
 
 # overrides values in the probability of default tree where the stock price is
 # below the lower bound. (sets prob of default to 1)
@@ -114,11 +119,19 @@ new_shares <- new_shares / a_binomial_tree_stock
 payoff_tree_stock <- (outstanding_shares * binomial_tree_stock + bond_fv) / 
                      (outstanding_shares + new_shares)
 
+# overrides payoff tree stock to set values where the original share price was below
+# the lower bound to 0
+payoff_tree_stock[binomial_tree_stock < lower_bound] <- 0
+
 # set convertible note value at final node
 # assumed final node includes the final coupon payment + fv
 binomial_tree_payoff <- binomial_tree_stock
 binomial_tree_payoff[n_steps, ] <- pmax(bond_fv + coupon_value, 
                                         payoff_tree_stock[n_steps, ] * conv_ratio)
+
+# overrides binomial tree payoff to the recovery amount at nodes below the lower bound.
+# TODO - fix up this equation to actually use the recovery amount... will need to discount
+binomial_tree_payoff[binomial_tree_stock < lower_bound] <- 0
 
 continuation_tree <- binomial_tree_payoff # to initialise continuation values data frame 
 
@@ -129,13 +142,18 @@ continuation_tree <- binomial_tree_payoff # to initialise continuation values da
 for (tree_time in (n_steps - 1):1) {
   for (nodes_at_time in 1:tree_time) {
     continuation_tree[tree_time, nodes_at_time] <- 
-      rf_discountfactor * (1 - prob_default_node) * 
-      (q * binomial_tree_payoff[tree_time + 1, nodes_at_time + 1] + 
-         (1 - q) * binomial_tree_payoff[tree_time + 1, nodes_at_time])
+      rf_discountfactor * (1 - default_tree[tree_time, nodes_at_time]) * 
+       (
+        q[tree_time, nodes_at_time] * 
+         binomial_tree_payoff[tree_time + 1, nodes_at_time + 1] 
+       + 
+         (1 - q[tree_time, nodes_at_time]) * 
+         binomial_tree_payoff[tree_time + 1, nodes_at_time]
+       )
     +
-      (1 - prob_default_node) * coupon_values[tree_time]
+      (1 - default_tree[tree_time, nodes_at_time]) * coupon_values[tree_time]
     +
-      prob_default_node * rf_discountfactor * 
+      default_tree[tree_time, nodes_at_time] * rf_discountfactor * 
       recovery_rate * bond_fv * exp(-risk_free * (n_steps - tree_time))
     
     binomial_tree_payoff[tree_time, nodes_at_time] <-
